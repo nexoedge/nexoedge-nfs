@@ -1,0 +1,52 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
+#/*
+# * Copyright © 2019-2025, CUHK.
+# * Author: Helen H. W. Chan <hwchan@cuhk.edu.hk>
+# *
+# * contributor : Helen H. W. Chan <hwchan@cuhk.edu.hk>
+# *
+# * This program is free software; you can redistribute it and/or
+# * modify it under the terms of the GNU Lesser General Public License
+# * as published by the Free Software Foundation; either version 3 of
+# * the License, or (at your option) any later version.
+# *
+# * This program is distributed in the hope that it will be useful, but
+# * WITHOUT ANY WARRANTY; without even the implied warranty of
+# * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# * Lesser General Public License for more details.
+# *
+# * You should have received a copy of the GNU Lesser General Public
+# * License along with this library; if not, write to the Free Software
+# * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+# * 02110-1301 USA
+# *
+# * -------------
+# */
+#
+# This file is part of nfs-ganesha.
+#
+# rpc.statd is started by the nfs-lock.service, but that also loads the 'lockd'
+# kernel module in 'ExecStartPre'. The 'lockd' kernel module will register
+# itself as 'nlockmgr' which conflicts with the nfs-ganesha locking
+# implementation.
+#
+# This unit includes all the nfs-lock.service settings and details, but
+# overrides the 'ExecStartPre' and 'ExecStartPost' options.
+#
+# When this unit is started, the original nfs-lock.service is stopped (due to
+# the 'Conflicts' directive). With stopping the nfs-lock.service, 'lockd' gets
+# instructed to unregister 'nlockmgr' from the portmapper.
+#
+# The nfs-ganesha.service depends on this unit.
+#
+
+.include /usr/lib/systemd/system/rpc-statd.service
+
+[Unit]
+Before=nfs-ganesha.service
+Conflicts=nfs-lock.service rpc-statd.service
+
+[Service]
+ExecStartPre=
+ExecStopPost=
+
